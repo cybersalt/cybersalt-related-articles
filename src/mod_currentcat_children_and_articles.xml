@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="5.0" client="site" method="upgrade">
+    <name>MOD_CYBERSALT_RELATED_ARTICLES</name>
+        <copyright>© 2025 Cybersalt Consulting Ltd.</copyright>
+        <license>GPL-2.0-or-later</license>
+        <authorEmail>tim@cybersalt.com</authorEmail>
+    <creationDate>2025-09-15</creationDate>
+        <author>Tim Davis, Cybersalt Consulting Ltd.</author>
+        <authorUrl>https://www.cybersalt.com</authorUrl>
+    <version>1.6.0</version>
+    <description>Lists subcategories and articles on category view, and related/sibling articles on article view. Includes layout, ordering, and CSS options.</description>
+    <files>
+        <filename module="mod_currentcat_children_and_articles">mod_currentcat_children_and_articles.php</filename>
+        <folder>tmpl</folder>
+        <folder>language</folder>
+    </files>
+    <languages>
+        <language tag="en-GB">language/en-GB/en-GB.mod_currentcat_children_and_articles.ini</language>
+        <language tag="en-GB">language/en-GB/en-GB.mod_currentcat_children_and_articles.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params">
+            <fieldset name="basic" label="Options">
+                <field name="show_on_category_view" type="radio" default="1" label="Show on category view">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="show_on_article_view" type="radio" default="1" label="Show on article view">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="show_section_subcategories" type="radio" default="1" label="Show subcategories section">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="show_section_category_articles" type="radio" default="1" label="Show category articles section">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="show_section_siblings" type="radio" default="1" label="Show related/siblings section (article view)">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <!-- Headings -->
+                <field name="text_subcategories" type="text" default="" label="Heading for subcategories"/>
+                <field name="text_articles" type="text" default="" label="Heading for category articles"/>
+                <field name="text_siblings" type="text" default="" label="Heading for related/siblings"/>
+                <field name="show_catname_after_heading" type="radio" default="0" label="Display category name after heading">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <!-- Limits & children -->
+                <field name="limit" type="number" default="0" label="Max articles (category view)"/>
+                <field name="siblings_limit" type="number" default="0" label="Max related/siblings (article view)"/>
+                <field name="subcats_limit" type="number" default="0" label="Max subcategories"/>
+                <field name="child_depth" type="list" default="1" label="Subcategory depth">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="0">Unlimited</option>
+                </field>
+                <field
+    name="exclude_category_ids"
+    type="category"
+    extension="com_content"
+    multiple="true"
+    label="Exclude categories"
+    description="Select categories to exclude from the subcategory list (and related lists where applicable)."
+/>
+<!-- Related mode -->
+                <field name="siblings_mode" type="list" default="category" label="Related mode">
+                    <option value="category">Same category</option>
+                    <option value="tags">Shared tags</option>
+                </field>
+
+                <!-- Ordering & featured -->
+                <field name="order_by_category" type="list" default="publish_up" label="Order by (category view)">
+                    <option value="publish_up">Publish Up</option>
+                    <option value="created">Created</option>
+                    <option value="modified">Modified</option>
+                    <option value="title">Title</option>
+                    <option value="hits">Hits</option>
+                    <option value="ordering">Ordering</option>
+                </field>
+                <field name="order_dir_category" type="list" default="DESC" label="Direction (category view)">
+                    <option value="ASC">ASC</option>
+                    <option value="DESC">DESC</option>
+                </field>
+                <field name="order_by_siblings" type="list" default="publish_up" label="Order by (related/siblings)">
+                    <option value="publish_up">Publish Up</option>
+                    <option value="created">Created</option>
+                    <option value="modified">Modified</option>
+                    <option value="title">Title</option>
+                    <option value="hits">Hits</option>
+                    <option value="ordering">Ordering</option>
+                </field>
+                <field name="order_dir_siblings" type="list" default="DESC" label="Direction (related/siblings)">
+                    <option value="ASC">ASC</option>
+                    <option value="DESC">DESC</option>
+                </field>
+                <field name="featured_filter_category" type="list" default="include" label="Featured (category view)">
+                    <option value="include">Include Featured</option>
+                    <option value="only">Only Featured</option>
+                    <option value="hide">Hide Featured</option>
+                </field>
+                <field name="featured_filter_siblings" type="list" default="include" label="Featured (related/siblings)">
+                    <option value="include">Include Featured</option>
+                    <option value="only">Only Featured</option>
+                    <option value="hide">Hide Featured</option>
+                </field>
+            </fieldset>
+
+            <fieldset name="display" label="Display">
+                <field name="output_style" type="list" default="stack" label="Layout style">
+                    <option value="stack">Stack</option>
+                    <option value="grid2">Grid (2 columns)</option>
+                    <option value="grid3">Grid (3 columns)</option>
+                </field>
+                <field name="show_subheading" type="radio" default="1" label="Show section headings">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="css_enable" type="radio" default="1" label="Enable simple styling">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="css_text_color" type="color" default="" label="Text color"/>
+                <field name="css_heading_color" type="color" default="" label="Heading color"/>
+                <field name="css_link_color" type="color" default="" label="Link color"/>
+                <field name="css_link_hover_color" type="color" default="" label="Link hover color"/>
+                <field name="css_divider_color" type="color" default="" label="Divider color"/>
+                <field name="css_custom" type="textarea" rows="6" default="" label="Custom CSS (scoped)"/>
+            </fieldset>
+        </fields>
+    </config>
+</extension>
