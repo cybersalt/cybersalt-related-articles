@@ -49,6 +49,12 @@ $linkColor = trim((string) $params->get('css_link_color', ''));
 $linkHoverColor = trim((string) $params->get('css_link_hover_color', ''));
 $dividerColor = trim((string) $params->get('css_divider_color', ''));
 $customCss = (string) $params->get('css_custom', '');
+// Escape "<" so no value can close the <style> block below; ">" is a valid selector, so leave it.
+[$textColor, $headingColor, $linkColor, $linkHoverColor, $dividerColor, $customCss] = str_replace(
+    '<',
+    '\00003c ',
+    [$textColor, $headingColor, $linkColor, $linkHoverColor, $dividerColor, $customCss]
+);
 
 $moduleId = isset($module) ? (int) $module->id : 0;
 $rootId = 'mod-currentcat-' . $moduleId;
