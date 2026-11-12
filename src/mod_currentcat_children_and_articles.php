@@ -20,6 +20,11 @@ $view   = $input->getCmd('view');
 
 $childCategories = [];
 $currentCategoryTitle = '';
+$articles        = [];
+$siblingArticles = [];
+
+// Guarded, so a second copy of the module on the same page doesn't redeclare these functions.
+if (!function_exists('modCurrentCat_collectChildren')) {
 /**
  * Collect children up to a depth. depth=1 means direct children only; 0 means unlimited.
  * $exclude is an array of category IDs to skip.
@@ -54,9 +59,6 @@ function modCurrentCat_collectChildren($node, int $depth, array $exclude, array 
     }
 }
 
-$articles        = [];
-$siblingArticles = [];
-
 function modCurrentCat_resolveCategoryTitle($option, $view, $input, $article = null) {
     $title = '';
     try {
@@ -78,6 +80,7 @@ function modCurrentCat_resolveCategoryTitle($option, $view, $input, $article = n
         }
     } catch (\Throwable $e) { /* ignore */ }
     return $title;
+}
 }
 
 
@@ -118,19 +121,21 @@ $mapOrderField = function(string $f) {
 if ($option === 'com_content' && $view === 'category' && $showCatView) {
     $catId  = $input->getInt('id');
     if ($catId) {
+        $currentCategoryTitle = modCurrentCat_resolveCategoryTitle($option, $view, $input);
+
         if ($showSubSec) {
             // Children via Categories API
             $categories = Categories::getInstance('content');
             $node = $categories->get($catId);
             if ($node) {
-                $currentCategoryTitle = modCurrentCat_resolveCategoryTitle($option, $view, $input);
-                $childCategories = [];
-$currentCategoryTitle = '';
-            $depth = (int) $params->get('child_depth', 1);
-            $exclude = array_filter(array_map('intval', preg_split('/\s*,\s*/', (string) $params->get('exclude_category_ids', ''), -1, PREG_SPLIT_NO_EMPTY)));
-            $limitSub = (int) $params->get('subcats_limit', 0);
-            modCurrentCat_collectChildren($node, $depth, $exclude, $childCategories, $limitSub);
-
+                $depth = (int) $params->get('child_depth', 1);
+                // The field is a multi-select (array); a comma-separated string is still accepted.
+                $excludeParam = $params->get('exclude_category_ids', []);
+                $exclude = array_values(array_filter(array_map('intval', is_array($excludeParam)
+                    ? $excludeParam
+                    : preg_split('/\s*,\s*/', (string) $excludeParam, -1, PREG_SPLIT_NO_EMPTY))));
+                $limitSub = (int) $params->get('subcats_limit', 0);
+                modCurrentCat_collectChildren($node, $depth, $exclude, $childCategories, $limitSub);
             }
         }
 

@@ -10,8 +10,8 @@ $showHeadings = (int) $params->get('show_subheading', 1);
     $linkCategoryNameAfter = (int) $params->get('link_category_name_after_heading', 0);
     $catNameLink = '';
     if ($showCategoryNameAfter && !empty($currentCategoryTitle)) {
-        // Best-effort: try to get the current cat id from input or inferred
-        $catIdTmp = (int) ($input->getInt('id') ?: ($article->catid ?? 0));
+        // On an article page the request id is the article's, so take the category from the article.
+        $catIdTmp = ($view === 'article') ? (int) ($article->catid ?? 0) : (int) $input->getInt('id');
         if ($catIdTmp) {
             $catNameLink = Route::_(RouteHelper::getCategoryRoute($catIdTmp, isset($article->language) ? $article->language : 0));
         }
