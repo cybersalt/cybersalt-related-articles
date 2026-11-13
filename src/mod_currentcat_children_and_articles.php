@@ -9,6 +9,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\Categories\Categories;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\Language\Text;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
 
@@ -100,22 +101,38 @@ $featSib = (string) $params->get('featured_filter_siblings', 'include'); // incl
 
 $siblingsMode = (string) $params->get('siblings_mode', 'category'); // category|tags
 
+// The field is a multi-select (array); a comma-separated string is still accepted.
+$excludeParam = $params->get('exclude_category_ids', []);
+$exclude = array_values(array_filter(array_map('intval', is_array($excludeParam)
+    ? $excludeParam
+    : preg_split('/\s*,\s*/', (string) $excludeParam, -1, PREG_SPLIT_NO_EMPTY))));
+
 // Boot com_content MVC once
 $component = $app->bootComponent('com_content');
 $factory   = $component->getMVCFactory();
 
-// Helpers to map featured filter
-$getFeaturedState = function(string $mode) {
-    switch ($mode) {
-        case 'only': return 1;
-        case 'hide': return 0;
-        default: return ''; // include
-    }
-};
-$mapOrderField = function(string $f) {
-    // Joomla list states commonly: a.publish_up, a.created, a.modified, a.title, a.hits, a.ordering
-    // Use raw names and let model map/validate.
-    return $f;
+/**
+ * An Articles model with the module's ordering, direction, featured filter and limit applied.
+ * The Category model is not used for lists: it replaces list.ordering with the menu item's
+ * ordering, so the module's own ordering options had no effect.
+ */
+$createListModel = function (string $orderBy, string $direction, string $featured, int $limit) use ($app, $factory) {
+    $orderColumns = ['publish_up', 'created', 'modified', 'title', 'hits', 'ordering'];
+    $featuredMap  = ['include' => 'show', 'only' => 'only', 'hide' => 'hide'];
+
+    /** @var \Joomla\Component\Content\Site\Model\ArticlesModel $model */
+    $model = $factory->createModel('Articles', 'Site', ['ignore_request' => true]);
+    $model->setState('params', $app->getParams());
+    $model->setState('filter.published', 1);
+    $model->setState('filter.access', true);
+    $model->setState('filter.language', Multilanguage::isEnabled());
+    $model->setState('filter.featured', $featuredMap[$featured] ?? 'show');
+    $model->setState('list.ordering', 'a.' . (in_array($orderBy, $orderColumns, true) ? $orderBy : 'publish_up'));
+    $model->setState('list.direction', strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC');
+    $model->setState('list.start', 0);
+    $model->setState('list.limit', max(0, $limit));
+
+    return $model;
 };
 
 if ($option === 'com_content' && $view === 'category' && $showCatView) {
@@ -129,36 +146,14 @@ if ($option === 'com_content' && $view === 'category' && $showCatView) {
             $node = $categories->get($catId);
             if ($node) {
                 $depth = (int) $params->get('child_depth', 1);
-                // The field is a multi-select (array); a comma-separated string is still accepted.
-                $excludeParam = $params->get('exclude_category_ids', []);
-                $exclude = array_values(array_filter(array_map('intval', is_array($excludeParam)
-                    ? $excludeParam
-                    : preg_split('/\s*,\s*/', (string) $excludeParam, -1, PREG_SPLIT_NO_EMPTY))));
                 $limitSub = (int) $params->get('subcats_limit', 0);
                 modCurrentCat_collectChildren($node, $depth, $exclude, $childCategories, $limitSub);
             }
         }
 
         if ($showCatArtSec) {
-            /** @var \Joomla\Component\Content\Site\Model\CategoryModel $model */
-            $model = $factory->createModel('Category', 'Site', ['ignore_request' => true]);
-            $model->setState('category.id', $catId);
-            $model->setState('filter.published', 1);
-            $model->setState('filter.access', true);
-            $model->setState('params', $app->getParams());
-            $model->setState('list.start', 0);
-            $limit = (int) $params->get('limit', 0);
-            if ($limit > 0) {
-                $model->setState('list.limit', $limit);
-            }
-            // Featured filter
-            $feat = $getFeaturedState($featCat);
-            if ($feat !== '') {
-                $model->setState('filter.featured', $feat);
-            }
-            // Ordering
-            $model->setState('list.ordering', $mapOrderField($orderCat));
-            $model->setState('list.direction', $dirCat);
+            $model = $createListModel($orderCat, $dirCat, $featCat, (int) $params->get('limit', 0));
+            $model->setState('filter.category_id', (int) $catId);
 
             $articles = $model->getItems() ?: [];
         }
@@ -202,29 +197,16 @@ if ($option === 'com_content' && $view === 'category' && $showCatView) {
                 }
 
                 if (!empty($tagIds)) {
-                    // Use com_content "Category" model scoped to all categories but filter by tags via join
+                    // Articles sharing any of the current article's tags, from any category
                     try {
-                        /** @var \Joomla\Component\Content\Site\Model\ArticlesModel $listModel */
-                        $listModel = $factory->createModel('Articles', 'Site', ['ignore_request' => true]);
-                        $listModel->setState('filter.published', 1);
-                        $listModel->setState('filter.access', true);
-                        $listModel->setState('params', $app->getParams());
-                        // The ArticlesModel supports 'filter.tag' in J5; set if present
-                        $listModel->setState('filter.tag', $tagIds);
+                        $listModel = $createListModel($orderSib, $dirSib, $featSib, (int) $params->get('siblings_limit', 0));
+                        $listModel->setState('filter.tag', array_map('intval', $tagIds));
                         // Exclude current
-                        $listModel->setState('filter.article_id', $articleId);
+                        $listModel->setState('filter.article_id', (int) $articleId);
                         $listModel->setState('filter.article_id.include', false);
-                        // Featured
-                        $feat = $getFeaturedState($featSib);
-                        if ($feat !== '') {
-                            $listModel->setState('filter.featured', $feat);
-                        }
-                        // Order
-                        $listModel->setState('list.ordering', $mapOrderField($orderSib));
-                        $listModel->setState('list.direction', $dirSib);
-                        $sLimit = (int) $params->get('siblings_limit', 0);
-                        if ($sLimit > 0) {
-                            $listModel->setState('list.limit', $sLimit);
+                        if (!empty($exclude)) {
+                            $listModel->setState('filter.category_id', $exclude);
+                            $listModel->setState('filter.category_id.include', false);
                         }
                         $siblingArticles = $listModel->getItems() ?: [];
                     } catch (\Throwable $e) {
@@ -237,37 +219,13 @@ if ($option === 'com_content' && $view === 'category' && $showCatView) {
             }
 
             if ($siblingsMode === 'category' && !empty($article->catid)) {
-                $catId = (int) $article->catid;
-                /** @var \Joomla\Component\Content\Site\Model\CategoryModel $catModel */
-                $catModel = $factory->createModel('Category', 'Site', ['ignore_request' => true]);
-                $catModel->setState('category.id', $catId);
-                $catModel->setState('filter.published', 1);
-                $catModel->setState('filter.access', true);
-                $catModel->setState('params', $app->getParams());
-                $catModel->setState('list.start', 0);
-                $sLimit = (int) $params->get('siblings_limit', 0);
-                if ($sLimit > 0) {
-                    $catModel->setState('list.limit', $sLimit + 1); // +1 to account for excluding current
-                }
-                // Featured
-                $feat = $getFeaturedState($featSib);
-                if ($feat !== '') {
-                    $catModel->setState('filter.featured', $feat);
-                }
-                // Order
-                $catModel->setState('list.ordering', $mapOrderField($orderSib));
-                $catModel->setState('list.direction', $dirSib);
+                $catModel = $createListModel($orderSib, $dirSib, $featSib, (int) $params->get('siblings_limit', 0));
+                $catModel->setState('filter.category_id', (int) $article->catid);
+                // Exclude current
+                $catModel->setState('filter.article_id', (int) $articleId);
+                $catModel->setState('filter.article_id.include', false);
 
-                $items = $catModel->getItems() ?: [];
-                foreach ($items as $it) {
-                    if ((int) $it->id === (int) $articleId) {
-                        continue; // exclude current
-                    }
-                    $siblingArticles[] = $it;
-                    if ($sLimit > 0 && count($siblingArticles) >= $sLimit) {
-                        break;
-                    }
-                }
+                $siblingArticles = $catModel->getItems() ?: [];
             }
         }
     }

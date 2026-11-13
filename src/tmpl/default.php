@@ -6,8 +6,9 @@ use Joomla\CMS\Language\Text;
 use Joomla\Component\Content\Site\Helper\RouteHelper;
 
 $showHeadings = (int) $params->get('show_subheading', 1);
-    $showCategoryNameAfter = (int) $params->get('show_category_name_after_heading', 0);
-    $linkCategoryNameAfter = (int) $params->get('link_category_name_after_heading', 0);
+    // The manifest saves these as show_/link_catname_after_heading; the long names were never saved by the form.
+    $showCategoryNameAfter = (int) $params->get('show_catname_after_heading', $params->get('show_category_name_after_heading', 0));
+    $linkCategoryNameAfter = (int) $params->get('link_catname_after_heading', $params->get('link_category_name_after_heading', 0));
     $catNameLink = '';
     if ($showCategoryNameAfter && !empty($currentCategoryTitle)) {
         // On an article page the request id is the article's, so take the category from the article.

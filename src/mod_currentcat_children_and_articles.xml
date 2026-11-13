@@ -4,23 +4,33 @@
         <copyright>© 2025 Cybersalt Consulting Ltd.</copyright>
         <license>GPL-2.0-or-later</license>
         <authorEmail>tim@cybersalt.com</authorEmail>
-    <creationDate>2025-09-15</creationDate>
+    <creationDate>2026-11-12</creationDate>
         <author>Tim Davis, Cybersalt Consulting Ltd.</author>
         <authorUrl>https://www.cybersalt.com</authorUrl>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <description>Lists subcategories and articles on category view, and related/sibling articles on article view. Includes layout, ordering, and CSS options.</description>
+    <namespace path="src">Cybersalt\Module\RelatedArticles</namespace>
     <files>
         <filename module="mod_currentcat_children_and_articles">mod_currentcat_children_and_articles.php</filename>
+        <filename>integrity.json</filename>
+        <folder>src</folder>
         <folder>tmpl</folder>
         <folder>language</folder>
     </files>
+    <changelogurl>https://www.cybersalt.com/index.php?option=com_csreleasemanager&amp;task=api.changelogxml&amp;format=raw&amp;element=mod_currentcat_children_and_articles</changelogurl>
+    <updateservers>
+        <server type="extension" priority="1" name="Cybersalt Related Articles">https://www.cybersalt.com/index.php?option=com_csreleasemanager&amp;task=api.updatexml&amp;format=raw&amp;element=mod_currentcat_children_and_articles</server>
+    </updateservers>
     <languages>
         <language tag="en-GB">language/en-GB/en-GB.mod_currentcat_children_and_articles.ini</language>
         <language tag="en-GB">language/en-GB/en-GB.mod_currentcat_children_and_articles.sys.ini</language>
     </languages>
     <config>
         <fields name="params">
-            <fieldset name="basic" label="Options">
+            <fieldset name="basic" label="Options" addfieldprefix="Cybersalt\Module\RelatedArticles\Site\Field">
+                <field name="integrity" type="Integrity" label="File check"
+                       lists="modules/mod_currentcat_children_and_articles/integrity.json"
+                       product="MOD_CYBERSALT_RELATED_ARTICLES" />
                 <field name="show_on_category_view" type="radio" default="1" label="Show on category view">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
@@ -47,6 +57,10 @@
                 <field name="text_articles" type="text" default="" label="Heading for category articles"/>
                 <field name="text_siblings" type="text" default="" label="Heading for related/siblings"/>
                 <field name="show_catname_after_heading" type="radio" default="0" label="Display category name after heading">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+                <field name="link_catname_after_heading" type="radio" default="0" label="Link the category name" showon="show_catname_after_heading:1">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>

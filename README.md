@@ -1,49 +1,57 @@
-# Cybersalt Related Module (v1.0)
+# Cybersalt Related Articles
 
-A Joomla! module that displays **related category children and their articles**.  
-Developed by Cybersalt, this module is designed to enhance content navigation by showing contextually relevant items within the same category tree.
+A free Joomla 5 / 6 site module that shows visitors where to go next.
 
----
+- On a **category page** it lists the category's subcategories and its articles.
+- On an **article page** it lists the other articles in the same category, or articles that share a tag with it.
 
-## ⚙️ Installation
-
-1. Download or clone this repository.
-2. Log into your Joomla Administrator panel.
-3. Go to **Extensions > Manage > Install**.
-4. Upload the folder as a ZIP archive.
-5. Enable the module in **Extensions > Modules** and assign it to a position.
-6. Configure its parameters as needed.
+Element: `mod_currentcat_children_and_articles`. Product page: [cybersalt.com/extensions/related-articles](https://www.cybersalt.com/extensions/related-articles).
 
 ---
 
-## 🖥️ Usage
+## Options
 
-- Place the module in a visible template position.
-- Assign it to relevant menu items or pages where you want related category articles displayed.
+| Group | Options |
+|---|---|
+| Where it shows | Category pages, article pages, and each section on or off (subcategories, category articles, related articles) |
+| Headings | Your own heading text per section, with the category name after it (optionally linked) |
+| Subcategories | Depth (1, 2, 3 or unlimited), a limit, and categories to exclude |
+| Articles | Order by publish date, created, modified, title, hits or ordering; direction; Include / Only / Hide featured; a limit |
+| Related mode | Same category, or shared tags (falls back to same category when the article has no tags) |
+| Display | Stack, 2-column or 3-column grid; text, heading, link, link-hover and divider colours; a Custom CSS box |
 
----
-
-## 🌐 Language Support
-
-Currently includes:
-- **English (en-GB)** with `ini` files for both frontend and system labels.
-
----
-
-## 📜 License
-
-This module is released under the **GNU General Public License v2 or later**.  
-You are free to modify, distribute, and use it in your Joomla projects under the terms of this license.  
-See [GNU GPL](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) for details.
+The module respects access levels, publishing state and the site language, like Joomla's own article lists.
 
 ---
 
-## 🤝 Contributing
+## Installing
 
-Pull requests, improvements, and translations are welcome.  
+1. Download the latest `mod_currentcat_children_and_articles_v*.zip` from [Releases](https://github.com/cybersalt/cybersalt-related-articles/releases) or the product page.
+2. In Joomla admin, go to **System → Install → Extensions** and upload the zip.
+3. Go to **Content → Site Modules → New → Cybersalt Related Articles**, pick a position, and assign it to the menu items where it should show.
+
+Updates arrive through **System → Update → Extensions** like any other extension.
 
 ---
 
-## 📌 Notes
+## Building
 
-- Tested with **Joomla 5.x** (compatibility confirmed).
+```powershell
+powershell -ExecutionPolicy Bypass -File build.ps1 -Release
+```
+
+Needs 7-Zip and [Joomla-Brain](https://github.com/cybersalt/Joomla-Brain) beside this repo (for the shipped-file integrity list).
+
+---
+
+## Language support
+
+English (en-GB).
+
+---
+
+## License
+
+GNU General Public License v2 or later. See [LICENSE](LICENSE).
+
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).
